@@ -1,102 +1,417 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+//import LoginModal from '/src/components/LoginModal.vue';
 
 const query = ref('')
 const my_anime = ref([])
 const search_results = ref([])
 
 const my_anime_asc = computed(() => {
-	return my_anime.value.sort((a, b) => {
-		return a.title.localeCompare(b.title)
-	})
+  return my_anime.value.sort((a, b) => {
+    return a.title.localeCompare(b.title)
+  })
 })
 
 const searchAnime = () => {
-	const url = `https://api.jikan.moe/v4/anime?q=${query.value}`
-	fetch(url)
-		.then(res => res.json())
-		.then(data => {
-			search_results.value = data.data
-		})
+  const url = `https://api.jikan.moe/v4/anime?q=${query.value}`
+  fetch(url)
+ .then(res => res.json())
+ .then(data => {
+    search_results.value = data.data
+  })
 }
 
 const handleInput = (e) => {
-	if (!e.target.value) {
-		search_results.value = []
-	}
+  if (!e.target.value) {
+    search_results.value = []
+  }
 }
 
 const addAnime = (anime) => {
-	search_results.value = []
-	query.value = ''
+  search_results.value = []
+  query.value = ''
 
-	my_anime.value.push({
-		id: anime.mal_id,
-		title: anime.title,
-		image: anime.images.jpg.image_url,
-		total_episodes: anime.episodes,
-		watched_episodes: 0,
-	})
+  my_anime.value.push({
+    id: anime.mal_id,
+    title: anime.title,
+    image: anime.images.jpg.image_url,
+    total_episodes: anime.episodes,
+    watched_episodes: 0,
+  })
 
-	localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
+  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
 }
 
 const increaseWatch = (anime) => {
-	anime.watched_episodes++
-	localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
+  anime.watched_episodes++
+  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
 }
 
 const decreaseWatch = (anime) => {
-	anime.watched_episodes--
-	localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
+  anime.watched_episodes--
+  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
 }
 
 onMounted(() => {
-	my_anime.value = JSON.parse(localStorage.getItem('my_anime')) || []
+  my_anime.value = JSON.parse(localStorage.getItem('my_anime')) || []
 })
-</script>
 
-<template>
-	<main>
-		<h1>My Anime Tracker</h1>
+const cards = ref(JSON.parse(localStorage.getItem('animeOdysseyCards')) || [])
+const modalVisible = ref(false)
+const selectedCard = ref({})
+const inputModalVisible = ref(false)
+const newCard = ref({
+  image: "",
+  videoUrl: "",
+  shortText: "",
+  longText: "",
+})
 
-		<form @submit.prevent="searchAnime">
-			<input type="text" placeholder="Search for an anime..." v-model="query" @input="handleInput" />
-			<button type="submit" class="button">Search</button>
-		</form>
+const isURLValid = computed(() => {
+  const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+  return urlRegex.test(newCard.value.image) && urlRegex.test(newCard.value.videoUrl);
+})
 
-		<div class="results" v-if="search_results.length > 0">
-			<div v-for="anime in search_results" class="result">
-				<img :src="anime.images.jpg.image_url" />
-				<div class="details">
-					<h3>{{ anime.title }}</h3>
-					<p :title="anime.synopsis" v-if="anime.synopsis">{{ anime.synopsis.slice(0, 120) }}...</p>
-					<span class="flex-1"></span>
-					<button @click="addAnime(anime)" class="button">Add to My Anime</button>
-				</div>
-			</div>
-		</div>
+const openLoginModal = () => {
+  // Assuming LoginModal has an openModal method
+  // This might need to be adjusted based on the actual implementation of LoginModal
+}
 
-		<div class="myanime" v-if="my_anime.length > 0">
-			<h2>My Anime</h2>
+const showModal = (card) => {
+  selectedCard.value = card
+  modalVisible.value = true
+}
 
-			<div v-for="anime in my_anime_asc" class="anime">
-				<img :src="anime.image" />
-				<h3>{{ anime.title }}</h3>
-				<div class="flex-1"></div>
-				<span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
-				<button 
-					v-if="anime.total_episodes !== anime.watched_episodes" 
-					@click="increaseWatch(anime)" class="button">+</button>
-				<button 
-					v-if="anime.watched_episodes > 0"
-					@click="decreaseWatch(anime)" class="button">-</button>
-			</div>
-		</div>
-	</main>
+const hideModal = () => {
+  modalVisible.value = false
+}
+
+const showInputModal = () => {
+  inputModalVisible.value = true
+}
+
+const hideInputModal = () => {
+  inputModalVisible.value = false
+}
+
+const addCard = () => {
+  if (!isURLValid.value) {
+    alert('Please enter valid URLs for Image and Video.')
+    return
+  }
+
+  cards.value.push(newCard.value)
+  newCard.value = {
+    image: "",
+    videoUrl: "",
+    shortText: "",
+    longText: "",
+  }
+  localStorage.setItem('animeOdysseyCards', JSON.stringify(cards.value))
+  inputModalVisible.value = false
+}
+
+const deleteCard = (index) => {
+  cards.value.splice(index, 1); // Remove the card from the array
+  localStorage.setItem('animeOdysseyCards', JSON.stringify(cards.value)); // Update local storage
+}
+
+
+</script><template>
+  <main class="layout-container">
+    <div class="search-container">
+      <!-- Anime Search Section -->
+      <header class="header">
+        <h1>Anime Odyssey</h1>
+        <button @click="openLoginModal">Login</button>
+      </header>
+      <h1>My Anime Tracker</h1>
+      <form @submit.prevent="searchAnime">
+        <input type="text" placeholder="Search for an anime..." v-model="query" @input="handleInput" />
+        <button type="submit" class="button">Search</button>
+      </form>
+
+      <div class="results" v-if="search_results.length > 0">
+        <div v-for="anime in search_results" class="result">
+          <img :src="anime.images.jpg.image_url" />
+          <div class="details">
+            <h3>{{ anime.title }}</h3>
+            <p :title="anime.synopsis" v-if="anime.synopsis">{{ anime.synopsis.slice(0, 120) }}...</p>
+            <span class="flex-1"></span>
+            <button @click="addAnime(anime)" class="button">Add to My Anime</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="myanime" v-if="my_anime.length > 0">
+        <h2>My Anime</h2>
+
+        <div v-for="anime in my_anime_asc" class="anime">
+          <img :src="anime.image" />
+          <h3>{{ anime.title }}</h3>
+          <div class="flex-1"></div>
+          <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
+          <button v-if="anime.total_episodes!== anime.watched_episodes" @click="increaseWatch(anime)" class="button">+</button>
+          <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card Notes Section -->
+    <div class="cardGrid">
+      <div v-for="(card, index) in cards" :key="index" @click="showModal(card)">
+        <div class="card">
+          <img :src="card.image" alt="Card Image" style="max-width: 100%; max-height: 100%" />
+          <p>{{ card.shortText }}</p>
+          <button class="delete-button" @click="deleteCard(index)">Delete</button>
+        </div>
+      </div>
+
+      <!-- Card Modal -->
+      <div v-if="modalVisible" class="modal" @click="hideModal">
+        <div class="modal-content" @click.stop>
+          <div class="content-wrapper">
+            <img :src="selectedCard.image" alt="Expanded Image" class="expanded-image" />
+            <div class="video-wrapper">
+              <iframe width="560" height="315" :src="selectedCard.videoUrl" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <p class="short-text">{{ selectedCard.shortText }}</p>
+            <p>{{ selectedCard.longText }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Card Input Modal -->
+      <div v-if="inputModalVisible" class="modal" @click="hideInputModal">
+        <div class="modal-content" @click.stop>
+          <form @submit.prevent="addCard">
+            <input type="text" v-model="newCard.image" placeholder="Image URL" />
+            <input type="text" v-model="newCard.videoUrl" placeholder="Video URL" />
+            <input type="text" v-model="newCard.shortText" placeholder="Short Text" />
+            <input type="text" v-model="newCard.longText" placeholder="Long Text" />
+            <button type="submit">Add</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Content Button -->
+    <button class="floatingButton" @click="showInputModal">+</button>
+
+    <footer class="footer">
+      <p>&copy; 2024 Anime Odyssey. All rights reserved.</p>
+    </footer>
+  </main>
 </template>
 
-<style>
+<style scoped>
+
+.cardContainer {
+  display: flex;
+  justify-content: center;
+  color: black;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  color: black;
+}
+
+.card {
+  width: 225px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  color: black;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  color: black;
+}
+
+.short-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.expanded-image {
+  max-width: 60%;
+  max-height: 60vh;
+}
+
+.video-wrapper {
+  margin-top: 20px;
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal form input {
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.modal form button {
+  padding: 5px 10px;
+  background-color: #aa00ff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.layout-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.search-container {
+  flex: 1;
+}
+
+.cardGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+.layout-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.cardGrid {
+  /* Remove the flex: 1; to prevent it from taking up all available space */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  max-width: 900px; /* Add a maximum width to the card grid */
+}
+
+
+.floatingButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #aa00ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.floatingButton:hover {
+  background-color: #aa00ff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #aa00ff;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.header input {
+  padding: 5px;
+  margin: 5px;
+}
+
+.header button {
+  padding: 5px 10px;
+  background-color: white;
+  color: #aa00ff;
+  border: none;
+  cursor: pointer;
+}
+
+.footer {
+  background-color: #aa00ff;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  left: 0;
+}
+
+.floatingButton {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #c300ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.floatingButton:hover {
+  background-color: #0056b3;
+}
 * {
 	margin: 0;
 	padding: 0;
@@ -109,10 +424,11 @@ body {
 }
 
 main {
-	margin: 0 auto;
-	max-width: 768px;
-	padding: 1.5rem;
+  margin-top: 200px; /* Adjust based on the height of your header */
+  padding: 1.5rem;
+  
 }
+
 
 h1 {
 	text-align: center;
@@ -250,5 +566,185 @@ form input {
 
 .anime .button:last-of-type {
 	margin-right: 0;
+}
+.cardContainer {
+  display: flex;
+  justify-content: center;
+  color: black;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  color: black;
+}
+.delete-button {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-left: 10px; /* Add some space between the delete button and other elements */
+}
+
+
+.card {
+  width: 225px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  color: black;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  color: black;
+}
+
+.short-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.expanded-image {
+  max-width: 60%;
+  max-height: 60vh;
+}
+
+.video-wrapper {
+  margin-top: 20px;
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal form input {
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.modal form button {
+  padding: 5px 10px;
+  background-color: #aa00ff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.floatingButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #aa00ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.floatingButton:hover {
+  background-color: #aa00ff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #aa00ff;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  width: 100%;
+  z-index: 100; /* Adjust z-index as needed */
+}
+
+.header input {
+  padding: 5px;
+  margin: 5px;
+}
+
+.header button {
+  padding: 5px 10px;
+  background-color: white;
+  color: #aa00ff;
+  border: none;
+  cursor: pointer;
+}
+.footer {
+  background-color: #aa00ff;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  left: 0;
+  z-index: 50; /* Lower z-index than the header */
+}
+.floatingButton {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: #c300ff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.floatingButton:hover {
+  background-color: #0056b3;
 }
 </style>
