@@ -125,9 +125,9 @@ const deleteCard = (index) => {
         <h1>Anime Odyssey</h1>
         <button @click="openLoginModal">Login</button>
       </header>
-      <h1>My Anime Tracker</h1>
+      <h1>Anime Search</h1>
       <form @submit.prevent="searchAnime">
-        <input type="text" placeholder="Search for an anime..." v-model="query" @input="handleInput" />
+        <input type="text" placeholder="Search" v-model="query" @input="handleInput" />
         <button type="submit" class="button">Search</button>
       </form>
 
@@ -144,7 +144,7 @@ const deleteCard = (index) => {
       </div>
 
       <div class="myanime" v-if="my_anime.length > 0">
-        <h2>My Anime</h2>
+        <h2>My Anime List</h2>
 
         <div v-for="anime in my_anime_asc" class="anime">
           <img :src="anime.image" />
