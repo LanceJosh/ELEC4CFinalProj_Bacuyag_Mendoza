@@ -45,8 +45,7 @@ const fetchTopAnime = async () => {
   }
 };
 const updateReview = (anime) => {
-  anime.review = anime.newReview;
-  anime.newReview = ''; // Clear the input field
+  anime.review = anime.newReview; // Save review from textarea to anime.review
   localStorage.setItem('my_anime', JSON.stringify(my_anime.value));
 }
 
@@ -144,45 +143,52 @@ const deleteCard = (index) => {
 
 <template>
   <main class="layout-container">
-    <!-- Top Anime Section -->
-    <div class="section">
-      <h1>Top Anime</h1>
-      <div class="top-anime-container">
-        <div class="top-anime">
-          <div v-for="(anime, index) in topAnime" :key="anime.mal_id" class="anime-card">
-            <img :src="anime.images.jpg.image_url" alt="Anime Cover" />
-            <div class="anime-details">
-              <h3>{{ anime.title }}</h3>
-              <p>{{ anime.synopsis.slice(0, 120) }}...</p>
-            </div>
-          </div>
+  <!-- Top Anime Section -->
+<div class="section">
+  <h1>Top Anime</h1>
+  <div class="top-anime-container">
+    <div class="top-anime">
+      <div v-for="(anime, index) in topAnime" :key="anime.mal_id" class="anime-card">
+        <img :src="anime.images.jpg.image_url" alt="Anime Cover" />
+        <div class="anime-details">
+          <h3>{{ anime.title }}</h3>
+          <p>{{ anime.synopsis.slice(0, 120) }}...</p>
         </div>
       </div>
     </div>
-    <!-- Anime List -->
-    <!-- Anime List -->
-    <div class="section">
-      <div class="myanime" v-if="my_anime.length > 0">
-        <h1>My Anime List</h1>
+  </div>
+</div>
 
+<!-- Anime List -->
+<div class="section">
+  <div class="anime-spaced">
+    <div class="myanime" v-if="my_anime.length > 0">
+      <h1>My Anime List</h1>
+
+      <div class="myanime-scroll">
         <div v-for="anime in my_anime_asc" class="anime">
-          <img :src="anime.image" />
-          <h3>{{ anime.title }}</h3>
-          <p>{{ anime.review }}</p> <!-- Display the existing review -->
+          <div class="anime-details anime-list-details">
+            <img :src="anime.image" class="anime-list-image" />
+            <h3>{{ anime.title }}</h3>
+          </div>
           <div class="flex-1"></div>
-          <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
-          <button v-if="anime.total_episodes !== anime.watched_episodes" @click="increaseWatch(anime)"
-            class="button">+</button>
-          <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
-          <div class="remove-button" @click="removeAnime(anime)">X</div>
-          <!-- Move input field to the bottom -->
-          <div>
-            <input type="text" v-model="anime.newReview" placeholder="Add/Edit Review">
+          <div class="anime-actions">
+            <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
+            <button v-if="anime.total_episodes !== anime.watched_episodes" @click="increaseWatch(anime)"
+              class="button">+</button>
+            <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
+            <div class="remove-button" @click="removeAnime(anime)">x</div>
+          </div>
+          <!-- Review container -->
+          <div class="review-container">
+            <textarea v-model="anime.newReview" placeholder="Add/Edit Review"></textarea>
             <button @click="updateReview(anime)" class="button">Save Review</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
 
 
@@ -267,16 +273,50 @@ const deleteCard = (index) => {
 
 
 <style scoped>
+.anime {
+  display: flex;
+  flex-direction: column;
+}
+
+.myanime-scroll {
+  max-height: 650px; /* Set a max height for the scrollable area */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.anime-list-details {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.anime-list-image {
+  max-width: 100%;
+  height: auto;
+}
+.anime-actions {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Add margin between actions and review */
+}
+
+
+textarea {
+  width: 100%; /* Make the textarea fill the entire width */
+  padding: 5px; /* Add padding for better appearance */
+  resize: vertical; /* Allow vertical resizing */
+  min-height: 50px; /* Set a minimum height */
+}
 .anime-card {
   width: calc(33.33% - 20px);
-  /* Adjust the width calculation */
   margin: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
+.review-container {
+  margin-bottom: 10px; /* Add margin below review container */
+}
 @media screen and (max-width: 1200px) {
   .anime-card {
     width: calc(50% - 20px);
@@ -568,7 +608,6 @@ form input {
   /* Adjust size as needed */
   height: 30px;
   /* Adjust size as needed */
-  background-color: white;
   /* Changed to white */
   border-radius: 50%;
   /* Makes it a circle */
@@ -576,8 +615,7 @@ form input {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  padding-left: 10px;
-  /* Adds space to the left */
+  padding-left: 15px;
 }
 
 .remove-button span {
@@ -638,7 +676,7 @@ form input {
 }
 
 .myanime h1 {
-  color: #888;
+  color: #181818;
   font-weight: 400;
   margin-bottom: 1.5rem;
 }
@@ -647,10 +685,10 @@ form input {
   display: flex;
   align-items: center;
   margin-bottom: 1.5rem;
-  background-color: #FFF;
+  background-color: #f1f1f1c2;
   padding: 1rem;
   border-radius: 0.5rem;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .anime img {
