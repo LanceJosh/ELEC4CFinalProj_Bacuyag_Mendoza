@@ -44,7 +44,11 @@ const fetchTopAnime = async () => {
     return [];
   }
 };
-
+const updateReview = (anime) => {
+  anime.review = anime.newReview;
+  anime.newReview = ''; // Clear the input field
+  localStorage.setItem('my_anime', JSON.stringify(my_anime.value));
+}
 
 const addAnime = (anime) => {
   search_results.value = []
@@ -155,7 +159,7 @@ const deleteCard = (index) => {
         </div>
       </div>
     </div>
-
+    <!-- Anime List -->
     <!-- Anime List -->
     <div class="section">
       <div class="myanime" v-if="my_anime.length > 0">
@@ -164,17 +168,24 @@ const deleteCard = (index) => {
         <div v-for="anime in my_anime_asc" class="anime">
           <img :src="anime.image" />
           <h3>{{ anime.title }}</h3>
+          <p>{{ anime.review }}</p> <!-- Display the existing review -->
           <div class="flex-1"></div>
           <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
           <button v-if="anime.total_episodes !== anime.watched_episodes" @click="increaseWatch(anime)"
             class="button">+</button>
           <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
           <div class="remove-button" @click="removeAnime(anime)">X</div>
-
+          <!-- Move input field to the bottom -->
+          <div>
+            <input type="text" v-model="anime.newReview" placeholder="Add/Edit Review">
+            <button @click="updateReview(anime)" class="button">Save Review</button>
+          </div>
         </div>
       </div>
     </div>
-        
+
+
+
     <!-- Anime Search Section -->
     <div class="section">
       <div class="search-container">
@@ -202,7 +213,7 @@ const deleteCard = (index) => {
 
       </div>
     </div>
-    
+
     <!-- Card Notes Section
     <div class="section">
       <h1>My Anime List</h1>
