@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-//import LoginModal from '/src/components/LoginModal.vue';
 
 const query = ref('')
 const my_anime = ref([])
@@ -45,7 +44,7 @@ const fetchTopAnime = async () => {
   }
 };
 const updateReview = (anime) => {
-  anime.review = anime.newReview; // Save review from textarea to anime.review
+  anime.review = anime.newReview;
   localStorage.setItem('my_anime', JSON.stringify(my_anime.value));
 }
 
@@ -94,10 +93,6 @@ const isURLValid = computed(() => {
   return urlRegex.test(newCard.value.image) && urlRegex.test(newCard.value.videoUrl);
 })
 
-// const openLoginModal = () => {
-//   // Assuming LoginModal has an openModal method
-//   // This might need to be adjusted based on the actual implementation of LoginModal
-// }
 
 const showModal = (card) => {
   selectedCard.value = card
@@ -134,8 +129,8 @@ const addCard = () => {
 }
 
 const deleteCard = (index) => {
-  cards.value.splice(index, 1); // Remove the card from the array
-  localStorage.setItem('animeOdysseyCards', JSON.stringify(cards.value)); // Update local storage
+  cards.value.splice(index, 1);
+  localStorage.setItem('animeOdysseyCards', JSON.stringify(cards.value));
 }
 
 
@@ -143,56 +138,50 @@ const deleteCard = (index) => {
 
 <template>
   <main class="layout-container">
-  <!-- Top Anime Section -->
-<div class="section">
-  <h1>Top Anime</h1>
-  <div class="top-anime-container">
-    <div class="top-anime">
-      <div v-for="(anime, index) in topAnime" :key="anime.mal_id" class="anime-card">
-        <img :src="anime.images.jpg.image_url" alt="Anime Cover" />
-        <div class="anime-details">
-          <h3>{{ anime.title }}</h3>
-          <p>{{ anime.synopsis.slice(0, 120) }}...</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Anime List -->
-<div class="section">
-  <div class="anime-spaced">
-    <div class="myanime" v-if="my_anime.length > 0">
-      <h1>My Anime List</h1>
-
-      <div class="myanime-scroll">
-        <div v-for="anime in my_anime_asc" class="anime">
-          <div class="anime-details anime-list-details">
-            <img :src="anime.image" class="anime-list-image" />
-            <h3>{{ anime.title }}</h3>
-          </div>
-          <div class="flex-1"></div>
-          <div class="anime-actions">
-            <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
-            <button v-if="anime.total_episodes !== anime.watched_episodes" @click="increaseWatch(anime)"
-              class="button">+</button>
-            <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
-            <div class="remove-button" @click="removeAnime(anime)">x</div>
-          </div>
-          <!-- Review container -->
-          <div class="review-container">
-            <textarea v-model="anime.newReview" placeholder="Add/Edit Review"></textarea>
-            <button @click="updateReview(anime)" class="button">Save Review</button>
+    <div class="section">
+      <h1>Top Anime</h1>
+      <div class="top-anime-container">
+        <div class="top-anime">
+          <div v-for="(anime, index) in topAnime" :key="anime.mal_id" class="anime-card">
+            <img :src="anime.images.jpg.image_url" alt="Anime Cover" />
+            <div class="anime-details">
+              <h3>{{ anime.title }}</h3>
+              <p>{{ anime.synopsis.slice(0, 120) }}...</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
+    <div class="section">
+      <div class="anime-spaced">
+        <div class="myanime" v-if="my_anime.length > 0">
+          <h1>My Anime List</h1>
 
+          <div class="myanime-scroll">
+            <div v-for="anime in my_anime_asc" class="anime">
+              <div class="anime-details anime-list-details">
+                <img :src="anime.image" class="anime-list-image" />
+                <h3>{{ anime.title }}</h3>
+              </div>
+              <div class="flex-1"></div>
+              <div class="anime-actions">
+                <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
+                <button v-if="anime.total_episodes !== anime.watched_episodes" @click="increaseWatch(anime)"
+                  class="button">+</button>
+                <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
+                <div class="remove-button" @click="removeAnime(anime)">x</div>
+              </div>
+              <div class="review-container">
+                <textarea v-model="anime.newReview" placeholder="Add/Edit Review"></textarea>
+                <button @click="updateReview(anime)" class="button">Save Review</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Anime Search Section -->
     <div class="section">
       <div class="search-container">
         <header class="header">
@@ -220,51 +209,6 @@ const deleteCard = (index) => {
       </div>
     </div>
 
-    <!-- Card Notes Section
-    <div class="section">
-      <h1>My Anime List</h1>
-      <div class="cardGrid">
-        <div v-for="(card, index) in cards" :key="index" @click="showModal(card)">
-          <div class="card">
-            <img :src="card.image" alt="Card Image" style="max-width: 100%; max-height: 100%" />
-            <p>{{ card.shortText }}</p>
-            <button class="delete-button" @click="deleteCard(index)">Delete</button>
-          </div>
-        </div>
-
-         Card Modal 
-        <div v-if="modalVisible" class="modal" @click="hideModal">
-          <div class="modal-content" @click.stop>
-            <div class="content-wrapper">
-              <img :src="selectedCard.image" alt="Expanded Image" class="expanded-image" />
-              <div class="video-wrapper">
-                <iframe width="560" height="315" :src="selectedCard.videoUrl" frameborder="0" allowfullscreen></iframe>
-              </div>
-              <p class="short-text">{{ selectedCard.shortText }}</p>
-              <p>{{ selectedCard.longText }}</p>
-            </div>
-          </div>
-        </div>
-
-         New Card Input Modal 
-        <div v-if="inputModalVisible" class="modal" @click="hideInputModal">
-          <div class="modal-content" @click.stop>
-            <form @submit.prevent="addCard">
-              <input type="text" v-model="newCard.image" placeholder="Image URL" />
-              <input type="text" v-model="newCard.videoUrl" placeholder="Video URL" />
-              <input type="text" v-model="newCard.shortText" placeholder="Short Text" />
-              <input type="text" v-model="newCard.longText" placeholder="Long Text" />
-              <button type="submit">Add</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-     Add Content Button
-    <button class="floatingButton" @click="showInputModal">+</button> 
-  -->
-
     <footer class="footer">
       <p>&copy; 2024 Anime Odyssey. All rights reserved.</p>
     </footer>
@@ -279,8 +223,8 @@ const deleteCard = (index) => {
 }
 
 .myanime-scroll {
-  max-height: 650px; /* Set a max height for the scrollable area */
-  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 650px;
+  overflow-y: auto;
 }
 
 .anime-list-details {
@@ -293,19 +237,21 @@ const deleteCard = (index) => {
   max-width: 100%;
   height: auto;
 }
+
 .anime-actions {
   display: flex;
   align-items: center;
-  margin-bottom: 10px; /* Add margin between actions and review */
+  margin-bottom: 10px;
 }
 
 
 textarea {
-  width: 100%; /* Make the textarea fill the entire width */
-  padding: 5px; /* Add padding for better appearance */
-  resize: vertical; /* Allow vertical resizing */
-  min-height: 50px; /* Set a minimum height */
+  width: 100%;
+  padding: 5px;
+  resize: vertical;
+  min-height: 50px;
 }
+
 .anime-card {
   width: calc(33.33% - 20px);
   margin: 10px;
@@ -314,28 +260,28 @@ textarea {
   padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .review-container {
-  margin-bottom: 10px; /* Add margin below review container */
+  margin-bottom: 10px;
 }
+
 @media screen and (max-width: 1200px) {
   .anime-card {
     width: calc(50% - 20px);
-    /* Adjust the width calculation for smaller screens */
+
   }
 }
 
 @media screen and (max-width: 768px) {
   .anime-card {
     width: calc(100% - 20px);
-    /* Adjust the width calculation for even smaller screens */
+
   }
 }
 
 .top-anime-container {
   overflow-y: auto;
-  /* Add vertical scrollbar if needed */
   max-height: 650px;
-  /* Limit the maximum height */
 }
 
 .section {
@@ -457,19 +403,16 @@ textarea {
 .layout-container {
   display: flex;
   justify-content: center;
-  /* Center horizontally */
   align-items: flex-start;
   padding: 20px;
 }
 
 .cardGrid {
-  /* Remove the flex: 1; to prevent it from taking up all available space */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
   gap: 20px;
   padding: 20px;
   max-width: 900px;
-  /* Add a maximum width to the card grid */
 }
 
 
@@ -553,7 +496,6 @@ body {
 
 main {
   margin-top: 3%;
-  /* Adjust based on the height of your header */
   padding: 1.5rem;
 
 }
@@ -579,38 +521,24 @@ form input {
 
 .button {
   padding: 5px 10px;
-  /* Adjust padding as needed */
   background-color: #aa00ff;
-  /* A vibrant color */
   color: white;
-  /* Text color */
   border: none;
-  /* Removes the default border */
   cursor: pointer;
-  /* Changes cursor to pointer on hover */
   font-size: 14px;
-  /* Adjust font size as needed */
   font-weight: bold;
-  /* Makes the text bold */
   border-radius: 5px;
-  /* Rounded corners */
   transition: background-color 0.3s ease;
-  /* Smooth background color transition */
 }
 
 .button:hover {
   background-color: #0056b3;
-  /* Darker shade on hover */
 }
 
 .remove-button {
   width: 30px;
-  /* Adjust size as needed */
   height: 30px;
-  /* Adjust size as needed */
-  /* Changed to white */
   border-radius: 50%;
-  /* Makes it a circle */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -620,9 +548,7 @@ form input {
 
 .remove-button span {
   font-size: 20px;
-  /* Adjust size as needed */
   color: red;
-  /* Changed to red for contrast */
 }
 
 .results {
@@ -741,7 +667,6 @@ form input {
   padding: 5px 10px;
   cursor: pointer;
   margin-left: 10px;
-  /* Add some space between the delete button and other elements */
 }
 
 
@@ -847,7 +772,6 @@ form input {
   border-radius: 8px;
   width: 100%;
   z-index: 100;
-  /* Adjust z-index as needed */
 }
 
 .header input {
@@ -873,7 +797,6 @@ form input {
   width: 100%;
   left: 0;
   z-index: 50;
-  /* Lower z-index than the header */
 }
 
 .floatingButton {
@@ -906,9 +829,7 @@ form input {
 
 .anime-card {
   width: calc(33.33% - 20px);
-  /* Adjust the width calculation */
   margin: 10px 0;
-  /* Adjust vertical margin as needed */
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
