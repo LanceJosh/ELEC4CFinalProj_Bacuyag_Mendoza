@@ -11,7 +11,11 @@ const my_anime_asc = computed(() => {
     return a.title.localeCompare(b.title)
   })
 })
+const topAnime = ref([]);
 
+onMounted(async () => {
+  topAnime.value = await fetchTopAnime();
+});
 const searchAnime = () => {
   const url = `https://api.jikan.moe/v4/anime?q=${query.value}`
   fetch(url)
@@ -29,6 +33,18 @@ const handleInput = (e) => {
     search_results.value = []
   }
 }
+const fetchTopAnime = async () => {
+  const url = 'https://api.jikan.moe/v4/top/anime';
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching top anime:', error);
+    return [];
+  }
+};
+
 
 const addAnime = (anime) => {
   search_results.value = []
@@ -122,6 +138,16 @@ const deleteCard = (index) => {
 
 </script><template>
   <main class="layout-container">
+    <div class="top-anime">
+    <h2>Top Anime</h2>
+    <div v-for="anime in topAnime" :key="anime.mal_id" class="anime-card">
+      <img :src="anime.images.jpg.image_url" alt="Anime Cover" />
+      <div class="anime-details">
+        <h3>{{ anime.title }}</h3>
+        <p>{{ anime.synopsis }}</p>
+      </div>
+    </div>
+  </div>
     <div class="search-container">
       <!-- Anime Search Section -->
       <header class="header">
@@ -761,5 +787,31 @@ body {
 
 .floatingButton:hover {
   background-color: #0056b3;
+}
+
+.top-anime {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 20px;
+}
+
+.anime-card {
+  width: 200px;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.anime-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.anime-details {
+  margin-top: 10px;
 }
 </style>
