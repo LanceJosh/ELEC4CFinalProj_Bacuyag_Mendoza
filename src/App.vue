@@ -20,7 +20,10 @@ const searchAnime = () => {
     search_results.value = data.data
   })
 }
-
+const removeAnime = (anime) => {
+  my_anime.value = my_anime.value.filter(item => item.id!== anime.id);
+  localStorage.setItem('my_anime', JSON.stringify(my_anime.value));
+}
 const handleInput = (e) => {
   if (!e.target.value) {
     search_results.value = []
@@ -153,6 +156,8 @@ const deleteCard = (index) => {
           <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
           <button v-if="anime.total_episodes!== anime.watched_episodes" @click="increaseWatch(anime)" class="button">+</button>
           <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">-</button>
+          <div class="remove-button" @click="removeAnime(anime)">X</div>
+
         </div>
       </div>
     </div>
@@ -453,29 +458,39 @@ form input {
 	padding: 0.5rem 1rem;
 	width: 100%;
 }
-
 .button {
-	appearance: none;
-	outline: none;
-	border: none;
-	background: none;
-	cursor: pointer;
-
-	display: block;
-	padding: 0.5rem 1rem;
-	background-image: linear-gradient(to right, deeppink 50%, darkviolet 50%);
-	background-size: 200%;
-	color: white;
-	font-size: 1.125rem;
-	font-weight: bold;
-	text-transform: uppercase;
-	transition: 0.4s;
+  padding: 5px 10px; /* Adjust padding as needed */
+  background-color: #aa00ff; /* A vibrant color */
+  color: white; /* Text color */
+  border: none; /* Removes the default border */
+  cursor: pointer; /* Changes cursor to pointer on hover */
+  font-size: 14px; /* Adjust font size as needed */
+  font-weight: bold; /* Makes the text bold */
+  border-radius: 5px; /* Rounded corners */
+  transition: background-color 0.3s ease; /* Smooth background color transition */
 }
 
 .button:hover {
-	background-position: right;
+  background-color: #0056b3; /* Darker shade on hover */
 }
 
+.remove-button {
+  width: 30px; /* Adjust size as needed */
+  height: 30px; /* Adjust size as needed */
+  background-color: white; /* Changed to white */
+  border-radius: 50%; /* Makes it a circle */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  padding-left: 10px; /* Adds space to the left */
+}
+
+.remove-button span {
+  font-size: 20px; /* Adjust size as needed */
+  color: red; /* Changed to red for contrast */
+}
+  
 .results {
 	background-color: #fff;
 	border-radius: 0.5rem;
